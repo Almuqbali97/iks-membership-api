@@ -10,6 +10,7 @@ import rateLimit from 'express-rate-limit';
 import { initSendgrid } from './utils/email.js';
 import { authRoutes } from './routes/auth.js';
 import { metaRoutes } from './routes/meta.js';
+import { paymentRoutes } from './routes/payment.js';
 import { User } from './models/User.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -44,6 +45,10 @@ requireEnv('CLIENT_BASE_URL');
 requireEnv('SEND_GRID_API_KEY');
 requireEnv('FROM_EMAIL');
 requireEnv('EMAIL_FROM_NAME');
+requireEnv('THAWANI_API_BASE_URL');
+requireEnv('THAWANI_API_PAY_URL');
+requireEnv('THAWANI_API_KEY');
+requireEnv('PUBLISHABLE_KEY');
 
 initSendgrid(SEND_GRID_API_KEY);
 
@@ -89,6 +94,7 @@ app.use(
 );
 
 app.use('/api/meta', metaRoutes());
+app.use('/api/payment', paymentRoutes());
 
 app.get('/api/health', (_req, res) => {
   const routes = [];
