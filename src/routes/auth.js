@@ -37,6 +37,17 @@ export function authRoutes({
   const r = Router();
   const isProduction = process.env.NODE_ENV === 'production';
 
+  function getAuthToken(req) {
+    const cookieToken = req.cookies?.token;
+    if (cookieToken) return cookieToken;
+
+    const authHeader = req.get('Authorization') || '';
+    if (authHeader.toLowerCase().startsWith('bearer ')) {
+      return authHeader.slice(7).trim();
+    }
+    return null;
+  }
+
   function getCookieOptions() {
     return {
       httpOnly: true,
@@ -49,7 +60,7 @@ export function authRoutes({
   }
 
   r.get('/me', async (req, res) => {
-    const token = req.cookies?.token;
+    const token = getAuthToken(req);
     if (!token) {
       return res.status(401).json({ error: 'Not signed in' });
     }
@@ -171,6 +182,7 @@ export function authRoutes({
   function setAuthCookie(res, userId) {
     const token = jwt.sign({ sub: userId.toString() }, jwtSecret, { expiresIn: jwtExpiresIn });
     res.cookie('token', token, getCookieOptions());
+    return token;
   }
 
   r.post('/verify', async (req, res) => {
@@ -221,8 +233,8 @@ export function authRoutes({
         return res.status(500).json({ error: 'Could not create account. Please try again.' });
       }
       await Otp.deleteOne({ _id: otpDoc._id });
-      setAuthCookie(res, user._id);
-      return res.json({ user: publicUser(user.toObject()) });
+      const token = setAuthCookie(res, user._id);
+      return res.json({ user: publicUser(user.toObject()), token });
     }
 
     const user = await User.findOne({ email: normalizedEmail });
@@ -231,8 +243,8 @@ export function authRoutes({
       return res.status(404).json({ error: 'Account not found.' });
     }
     await Otp.deleteOne({ _id: otpDoc._id });
-    setAuthCookie(res, user._id);
-    return res.json({ user: publicUser(user.toObject()) });
+    const token = setAuthCookie(res, user._id);
+    return res.json({ user: publicUser(user.toObject()), token });
   });
 
   return r;
