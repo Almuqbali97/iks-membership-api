@@ -35,6 +35,18 @@ export function authRoutes({
   fromName,
 }) {
   const r = Router();
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  function getCookieOptions() {
+    return {
+      httpOnly: true,
+      sameSite: isProduction ? 'none' : 'lax',
+      secure: isProduction,
+      maxAge: 15 * 24 * 60 * 60 * 1000,
+      path: '/',
+      ...(process.env.COOKIE_DOMAIN ? { domain: process.env.COOKIE_DOMAIN } : {}),
+    };
+  }
 
   r.get('/me', async (req, res) => {
     const token = req.cookies?.token;
@@ -54,12 +66,7 @@ export function authRoutes({
   });
 
   r.post('/logout', (_req, res) => {
-    res.clearCookie('token', {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-    });
+    res.clearCookie('token', getCookieOptions());
     res.json({ ok: true });
   });
 
@@ -163,14 +170,7 @@ export function authRoutes({
 
   function setAuthCookie(res, userId) {
     const token = jwt.sign({ sub: userId.toString() }, jwtSecret, { expiresIn: jwtExpiresIn });
-    const maxAgeMs = 15 * 24 * 60 * 60 * 1000;
-    res.cookie('token', token, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: maxAgeMs,
-      path: '/',
-    });
+    res.cookie('token', token, getCookieOptions());
   }
 
   r.post('/verify', async (req, res) => {

@@ -30,6 +30,16 @@ const {
   EMAIL_FROM_NAME,
 } = process.env;
 
+function parseAllowedOrigins() {
+  const raw = process.env.ALLOWED_ORIGINS || CLIENT_BASE_URL;
+  return String(raw)
+    .split(',')
+    .map((v) => v.trim())
+    .filter(Boolean);
+}
+
+const allowedOrigins = parseAllowedOrigins();
+
 function requireEnv(name) {
   const v = process.env[name];
   if (!v) {
@@ -64,7 +74,12 @@ app.use(
 
 app.use(
   cors({
-    origin: CLIENT_BASE_URL,
+    origin(origin, callback) {
+      // Allow non-browser requests (no Origin header).
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
   })
 );
