@@ -1,0 +1,23 @@
+{
+  "name": "iks-membership-server",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.5.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "libphonenumber-js": "^1.12.41",
+    "mongoose": "^8.19.1",
+    "world-countries": "^5.1.0"
+  }
+}
